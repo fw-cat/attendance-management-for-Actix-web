@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  rust-app:
+    build: 
+      context: ./infra/docker/rust/
+    volumes:
+      - ./cargo/:/usr/src/cargo
+    ports:
+      - "8000:8080"
+    depends_on:
+      - mysql
+    tty: true
+
+  mysql:
+    image: mysql
+    volumes:
+      - db-store:/var/lib/mysql
+    ports:
+      - 3326:3306
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: sercret
+      MYSQL_DATABASE: mysql_rust
+      MYSQL_USER: ruster
+      MYSQL_PASSWORD: sercret
+
+  adminer:
+    image: adminer:latest
+    restart: always
+    ports:
+      - 33268:8080
+
+volumes:
+  db-store:
