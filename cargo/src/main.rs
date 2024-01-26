@@ -1,25 +1,41 @@
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use std::collections::HashMap;
 
-#[get("/")]
-async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
+use actix_web::{
+  body::BoxBody,
+  dev::ServiceResponse,
+  web, App, HttpServer, Responder, Result,
+  http::{
+    header::ContentType, StatusCode
+  },
+  middleware::{
+    ErrorHandlerResponse, ErrorHandlers
+  },
+};
+use actix_web_lab::respond::Html;
+use askama::Template;
+
+
+#[derive(Template)]
+#[template(path = "user.html")]
+struct HelloTemplate<'a> {
+  name: &'a str,
 }
 
-#[post("/echo")]
-async fn echo(req_body: String) -> impl Responder {
-    HttpResponse::Ok().body(req_body)
-}
+#[derive(Template)]
+#[template(path = "index.html")]
+struct IndexTemplate;
 
-async fn manual_hello() -> impl Responder {
-    HttpResponse::Ok().body("Hey there!")
+async fn index(query: web::Query<HashMap<String, String>>) -> Result<impl Responder> {
+  let html = IndexTemplate.render().expect("template should be valid");
+  Ok(Html(html))
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| {
-        App::new()
-            .service(hello)
-            .service(echo)
-            .route("/hey", web::get().to(manual_hello))
-    }).bind(("0.0.0.0", 8080))?.run().await
+  HttpServer::new(move || {
+    App::new()
+      .route("/", web::get().to(index))
+  })
+  .bind(("0.0.0.0", 8080))?
+  .run().await
 }
