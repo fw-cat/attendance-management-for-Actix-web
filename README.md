@@ -19,3 +19,8 @@ $ docker compose up --build -d
 ~~~sh
 $ docker compose exec rust-app cargo run
 ~~~
+
+## 03 - migrationの実行
+~~~sh
+$ docker compose exec diesel migration run
+~~~
